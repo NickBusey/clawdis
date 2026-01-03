@@ -7,6 +7,7 @@ Sources/Bridge/BridgeSession.swift
 Sources/Bridge/BridgeSettingsStore.swift
 Sources/Bridge/KeychainStore.swift
 Sources/Camera/CameraController.swift
+Sources/Health/HealthKitController.swift
 Sources/Chat/ChatSheet.swift
 Sources/Chat/IOSBridgeChatTransport.swift
 Sources/ClawdisApp.swift
@@ -49,6 +50,7 @@ Sources/Voice/VoiceWakePreferences.swift
 ../shared/ClawdisKit/Sources/ClawdisKit/Capabilities.swift
 ../shared/ClawdisKit/Sources/ClawdisKit/ClawdisKitResources.swift
 ../shared/ClawdisKit/Sources/ClawdisKit/DeepLinks.swift
+../shared/ClawdisKit/Sources/ClawdisKit/HealthCommands.swift
 ../shared/ClawdisKit/Sources/ClawdisKit/JPEGTranscoder.swift
 ../shared/ClawdisKit/Sources/ClawdisKit/NodeError.swift
 ../shared/ClawdisKit/Sources/ClawdisKit/ScreenCommands.swift

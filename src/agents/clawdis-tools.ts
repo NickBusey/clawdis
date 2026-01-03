@@ -1084,6 +1084,65 @@ const NodesToolSchema = Type.Union([
     includeAudio: Type.Optional(Type.Boolean()),
     outPath: Type.Optional(Type.String()),
   }),
+  Type.Object({
+    action: Type.Literal("health_weight_get"),
+    gatewayUrl: Type.Optional(Type.String()),
+    gatewayToken: Type.Optional(Type.String()),
+    timeoutMs: Type.Optional(Type.Number()),
+    node: Type.String(),
+    limit: Type.Optional(Type.Number()),
+    unit: Type.Optional(
+      Type.Union([Type.Literal("kg"), Type.Literal("lb"), Type.Literal("g")]),
+    ),
+    ascending: Type.Optional(Type.Boolean()),
+  }),
+  Type.Object({
+    action: Type.Literal("health_weight_record"),
+    gatewayUrl: Type.Optional(Type.String()),
+    gatewayToken: Type.Optional(Type.String()),
+    timeoutMs: Type.Optional(Type.Number()),
+    node: Type.String(),
+    value: Type.Number(),
+    unit: Type.Optional(
+      Type.Union([Type.Literal("kg"), Type.Literal("lb"), Type.Literal("g")]),
+    ),
+  }),
+  Type.Object({
+    action: Type.Literal("health_workout_latest"),
+    gatewayUrl: Type.Optional(Type.String()),
+    gatewayToken: Type.Optional(Type.String()),
+    timeoutMs: Type.Optional(Type.Number()),
+    node: Type.String(),
+  }),
+  Type.Object({
+    action: Type.Literal("health_rings_get"),
+    gatewayUrl: Type.Optional(Type.String()),
+    gatewayToken: Type.Optional(Type.String()),
+    timeoutMs: Type.Optional(Type.Number()),
+    node: Type.String(),
+  }),
+  Type.Object({
+    action: Type.Literal("health_steps_get"),
+    gatewayUrl: Type.Optional(Type.String()),
+    gatewayToken: Type.Optional(Type.String()),
+    timeoutMs: Type.Optional(Type.Number()),
+    node: Type.String(),
+  }),
+  Type.Object({
+    action: Type.Literal("health_blood_pressure_get"),
+    gatewayUrl: Type.Optional(Type.String()),
+    gatewayToken: Type.Optional(Type.String()),
+    timeoutMs: Type.Optional(Type.Number()),
+    node: Type.String(),
+  }),
+  Type.Object({
+    action: Type.Literal("health_sleep_get"),
+    gatewayUrl: Type.Optional(Type.String()),
+    gatewayToken: Type.Optional(Type.String()),
+    timeoutMs: Type.Optional(Type.Number()),
+    node: Type.String(),
+    limit: Type.Optional(Type.Number()),
+  }),
 ]);
 
 function createNodesTool(): AnyAgentTool {
@@ -1091,7 +1150,7 @@ function createNodesTool(): AnyAgentTool {
     label: "Clawdis Nodes",
     name: "clawdis_nodes",
     description:
-      "Discover and control paired nodes (status/describe/pairing/notify/camera/screen).",
+      "Discover and control paired nodes (status/describe/pairing/notify/camera/screen/health: weight/workout/rings/steps/blood pressure/sleep).",
     parameters: NodesToolSchema,
     execute: async (_toolCallId, args) => {
       const params = args as Record<string, unknown>;
@@ -1382,6 +1441,144 @@ function createNodesTool(): AnyAgentTool {
               hasAudio: payload.hasAudio,
             },
           };
+        }
+        case "health_weight_get": {
+          const node = readStringParam(params, "node", { required: true });
+          const nodeId = await resolveNodeId(gatewayOpts, node);
+          const limit =
+            typeof params.limit === "number" && Number.isFinite(params.limit)
+              ? params.limit
+              : undefined;
+          const unit =
+            params.unit === "kg" || params.unit === "lb" || params.unit === "g"
+              ? params.unit
+              : undefined;
+          const ascending =
+            typeof params.ascending === "boolean" ? params.ascending : undefined;
+          const raw = (await callGatewayTool("node.invoke", gatewayOpts, {
+            nodeId,
+            command: "health.weight.get",
+            params: {
+              limit,
+              unit,
+              ascending,
+            },
+            idempotencyKey: crypto.randomUUID(),
+          })) as { payload?: unknown };
+          const payload =
+            raw && typeof raw.payload === "object" && raw.payload !== null
+              ? raw.payload
+              : {};
+          return jsonResult(payload);
+        }
+        case "health_weight_record": {
+          const node = readStringParam(params, "node", { required: true });
+          const nodeId = await resolveNodeId(gatewayOpts, node);
+          const value =
+            typeof params.value === "number" && Number.isFinite(params.value)
+              ? params.value
+              : (() => {
+                  throw new Error("value must be a number");
+                })();
+          const unit =
+            params.unit === "kg" || params.unit === "lb" || params.unit === "g"
+              ? params.unit
+              : undefined;
+          const raw = (await callGatewayTool("node.invoke", gatewayOpts, {
+            nodeId,
+            command: "health.weight.record",
+            params: {
+              value,
+              unit,
+            },
+            idempotencyKey: crypto.randomUUID(),
+          })) as { payload?: unknown };
+          const payload =
+            raw && typeof raw.payload === "object" && raw.payload !== null
+              ? raw.payload
+              : {};
+          return jsonResult(payload);
+        }
+        case "health_workout_latest": {
+          const node = readStringParam(params, "node", { required: true });
+          const nodeId = await resolveNodeId(gatewayOpts, node);
+          const raw = (await callGatewayTool("node.invoke", gatewayOpts, {
+            nodeId,
+            command: "health.workout.latest",
+            params: {},
+            idempotencyKey: crypto.randomUUID(),
+          })) as { payload?: unknown };
+          const payload =
+            raw && typeof raw.payload === "object" && raw.payload !== null
+              ? raw.payload
+              : {};
+          return jsonResult(payload);
+        }
+        case "health_rings_get": {
+          const node = readStringParam(params, "node", { required: true });
+          const nodeId = await resolveNodeId(gatewayOpts, node);
+          const raw = (await callGatewayTool("node.invoke", gatewayOpts, {
+            nodeId,
+            command: "health.rings.get",
+            params: {},
+            idempotencyKey: crypto.randomUUID(),
+          })) as { payload?: unknown };
+          const payload =
+            raw && typeof raw.payload === "object" && raw.payload !== null
+              ? raw.payload
+              : {};
+          return jsonResult(payload);
+        }
+        case "health_steps_get": {
+          const node = readStringParam(params, "node", { required: true });
+          const nodeId = await resolveNodeId(gatewayOpts, node);
+          const raw = (await callGatewayTool("node.invoke", gatewayOpts, {
+            nodeId,
+            command: "health.steps.get",
+            params: {},
+            idempotencyKey: crypto.randomUUID(),
+          })) as { payload?: unknown };
+          const payload =
+            raw && typeof raw.payload === "object" && raw.payload !== null
+              ? raw.payload
+              : {};
+          return jsonResult(payload);
+        }
+        case "health_blood_pressure_get": {
+          const node = readStringParam(params, "node", { required: true });
+          const nodeId = await resolveNodeId(gatewayOpts, node);
+          const raw = (await callGatewayTool("node.invoke", gatewayOpts, {
+            nodeId,
+            command: "health.blood_pressure.get",
+            params: {},
+            idempotencyKey: crypto.randomUUID(),
+          })) as { payload?: unknown };
+          const payload =
+            raw && typeof raw.payload === "object" && raw.payload !== null
+              ? raw.payload
+              : {};
+          return jsonResult(payload);
+        }
+        case "health_sleep_get": {
+          const node = readStringParam(params, "node", { required: true });
+          const nodeId = await resolveNodeId(gatewayOpts, node);
+          const limit =
+            typeof params.limit === "number" && Number.isFinite(params.limit)
+              ? params.limit
+              : undefined;
+          const raw = (await callGatewayTool("node.invoke", gatewayOpts, {
+            nodeId,
+            command: "health.sleep.get",
+            params: {
+              limit,
+            },
+            idempotencyKey: crypto.randomUUID(),
+          })) as { payload?: unknown };
+          const payload =
+            raw && typeof raw.payload === "object" && raw.payload !== null
+              ? raw.payload
+              : {};
+          return jsonResult(payload);
         }
         default:
           throw new Error(`Unknown action: ${action}`);

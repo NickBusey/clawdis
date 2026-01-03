@@ -23,6 +23,7 @@ struct SettingsTab: View {
     @AppStorage("talk.enabled") private var talkEnabled: Bool = false
     @AppStorage("talk.button.enabled") private var talkButtonEnabled: Bool = true
     @AppStorage("camera.enabled") private var cameraEnabled: Bool = true
+    @AppStorage("health.enabled") private var healthEnabled: Bool = false
     @AppStorage("screen.preventSleep") private var preventSleep: Bool = true
     @AppStorage("bridge.preferredStableID") private var preferredBridgeStableID: String = ""
     @AppStorage("bridge.lastDiscoveredStableID") private var lastDiscoveredBridgeStableID: String = ""
@@ -174,6 +175,24 @@ struct SettingsTab: View {
                     }
                 }
 
+                Section("Health") {
+                    Toggle("Allow Health", isOn: self.$healthEnabled)
+                        .disabled(!HealthKitController.isAvailable)
+                        .onChange(of: self.healthEnabled) { _, newValue in
+                            guard newValue else { return }
+                            Task { await self.appModel.requestHealthAuthorizationIfNeeded() }
+                        }
+                    if HealthKitController.isAvailable {
+                        Text("Allows the bridge to read and record weight from HealthKit.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Text("Health data isn't available on this device.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
                 Section("Camera") {
                     Toggle("Allow Camera", isOn: self.$cameraEnabled)
                     Text("Allows the bridge to request photos or short video clips (foreground only).")
@@ -315,6 +334,9 @@ struct SettingsTab: View {
         let voiceWakeEnabled = UserDefaults.standard.bool(forKey: VoiceWakePreferences.enabledKey)
         if voiceWakeEnabled { caps.append(ClawdisCapability.voiceWake.rawValue) }
 
+        let healthEnabled = UserDefaults.standard.bool(forKey: "health.enabled")
+        if healthEnabled { caps.append(ClawdisCapability.health.rawValue) }
+
         return caps
     }
 
@@ -336,6 +358,15 @@ struct SettingsTab: View {
             commands.append(ClawdisCameraCommand.list.rawValue)
             commands.append(ClawdisCameraCommand.snap.rawValue)
             commands.append(ClawdisCameraCommand.clip.rawValue)
+        }
+        if caps.contains(ClawdisCapability.health.rawValue) {
+            commands.append(ClawdisHealthCommand.weightGet.rawValue)
+            commands.append(ClawdisHealthCommand.weightRecord.rawValue)
+            commands.append(ClawdisHealthCommand.workoutLatest.rawValue)
+            commands.append(ClawdisHealthCommand.ringsGet.rawValue)
+            commands.append(ClawdisHealthCommand.stepsGet.rawValue)
+            commands.append(ClawdisHealthCommand.bloodPressureGet.rawValue)
+            commands.append(ClawdisHealthCommand.sleepGet.rawValue)
         }
 
         return commands

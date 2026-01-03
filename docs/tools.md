@@ -78,6 +78,7 @@ Core actions:
 - `pending`, `approve`, `reject` (pairing)
 - `notify` (macOS `system.notify`)
 - `camera_snap`, `camera_clip`, `screen_record`
+- Health: `health_weight_get`, `health_weight_record`, `health_workout_latest`, `health_rings_get`, `health_steps_get`, `health_blood_pressure_get`, `health_sleep_get`
 
 Notes:
 - Camera/screen commands require the node app to be foregrounded.

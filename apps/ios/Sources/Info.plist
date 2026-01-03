@@ -33,6 +33,10 @@
 	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>Clawdis can capture photos or short video clips when requested via the bridge.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Clawdis reads weight data to share with the bridge when requested.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Clawdis records weight data to Health when requested by the bridge.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Clawdis discovers and connects to your Clawdis bridge on the local network.</string>
 	<key>NSMicrophoneUsageDescription</key>
@@ -50,19 +54,5 @@
 	</array>
 	<key>UILaunchScreen</key>
 	<dict/>
-	<key>UISupportedInterfaceOrientations</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationPortraitUpsideDown</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
-	<key>UISupportedInterfaceOrientations~ipad</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationPortraitUpsideDown</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
 </dict>
 </plist>

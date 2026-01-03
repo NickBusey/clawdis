@@ -229,6 +229,9 @@ final class BridgeConnectionController {
         let voiceWakeEnabled = UserDefaults.standard.bool(forKey: VoiceWakePreferences.enabledKey)
         if voiceWakeEnabled { caps.append(ClawdisCapability.voiceWake.rawValue) }
 
+        let healthEnabled = UserDefaults.standard.bool(forKey: "health.enabled")
+        if healthEnabled { caps.append(ClawdisCapability.health.rawValue) }
+
         return caps
     }
 
@@ -250,6 +253,15 @@ final class BridgeConnectionController {
             commands.append(ClawdisCameraCommand.list.rawValue)
             commands.append(ClawdisCameraCommand.snap.rawValue)
             commands.append(ClawdisCameraCommand.clip.rawValue)
+        }
+        if caps.contains(ClawdisCapability.health.rawValue) {
+            commands.append(ClawdisHealthCommand.weightGet.rawValue)
+            commands.append(ClawdisHealthCommand.weightRecord.rawValue)
+            commands.append(ClawdisHealthCommand.workoutLatest.rawValue)
+            commands.append(ClawdisHealthCommand.ringsGet.rawValue)
+            commands.append(ClawdisHealthCommand.stepsGet.rawValue)
+            commands.append(ClawdisHealthCommand.bloodPressureGet.rawValue)
+            commands.append(ClawdisHealthCommand.sleepGet.rawValue)
         }
 
         return commands

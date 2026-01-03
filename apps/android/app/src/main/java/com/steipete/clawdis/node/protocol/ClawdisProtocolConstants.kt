@@ -3,6 +3,7 @@ package com.steipete.clawdis.node.protocol
 enum class ClawdisCapability(val rawValue: String) {
   Canvas("canvas"),
   Camera("camera"),
+  Health("health"),
   Screen("screen"),
   VoiceWake("voiceWake"),
 }

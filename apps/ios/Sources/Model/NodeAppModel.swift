@@ -17,6 +17,7 @@ final class NodeAppModel {
     var isBackgrounded: Bool = false
     let screen = ScreenController()
     let camera = CameraController()
+    private let health = HealthKitController()
     private let screenRecorder = ScreenRecordService()
     var bridgeStatusText: String = "Offline"
     var bridgeServerName: String?
@@ -186,6 +187,15 @@ final class NodeAppModel {
 
     func setTalkEnabled(_ enabled: Bool) {
         self.talkMode.setEnabled(enabled)
+    }
+
+    func requestHealthAuthorizationIfNeeded() async {
+        guard self.isHealthEnabled() else { return }
+        do {
+            try await self.health.requestHealthAuthorization(allowPrompt: !self.isBackgrounded)
+        } catch {
+            // Best-effort only.
+        }
     }
 
     func connectToBridge(
@@ -464,6 +474,15 @@ final class NodeAppModel {
                     message: "CAMERA_DISABLED: enable Camera in iOS Settings → Camera → Allow Camera"))
         }
 
+        if command.hasPrefix("health."), !self.isHealthEnabled() {
+            return BridgeInvokeResponse(
+                id: req.id,
+                ok: false,
+                error: ClawdisNodeError(
+                    code: .unavailable,
+                    message: "HEALTH_DISABLED: enable Health in iOS Settings → Health → Allow Health"))
+        }
+
         do {
             switch command {
             case ClawdisCanvasCommand.present.rawValue:
@@ -678,6 +697,52 @@ final class NodeAppModel {
                     hasAudio: params.includeAudio ?? true))
                 return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: payload)
 
+            case ClawdisHealthCommand.weightGet.rawValue:
+                let params = (try? Self.decodeParams(ClawdisHealthWeightQueryParams.self, from: req.paramsJSON)) ??
+                    ClawdisHealthWeightQueryParams()
+                let samples = try await self.health.fetchWeights(
+                    params: params,
+                    allowPrompt: !self.isBackgrounded)
+                let payload = try Self.encodePayload(ClawdisHealthWeightQueryResponse(samples: samples))
+                return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: payload)
+
+            case ClawdisHealthCommand.weightRecord.rawValue:
+                let params = try Self.decodeParams(ClawdisHealthWeightRecordParams.self, from: req.paramsJSON)
+                let sample = try await self.health.recordWeight(
+                    params: params,
+                    allowPrompt: !self.isBackgrounded)
+                let payload = try Self.encodePayload(ClawdisHealthWeightRecordResponse(sample: sample))
+                return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: payload)
+
+            case ClawdisHealthCommand.workoutLatest.rawValue:
+                let sample = try await self.health.fetchLatestWorkout(allowPrompt: !self.isBackgrounded)
+                let payload = try Self.encodePayload(ClawdisHealthWorkoutLatestResponse(sample: sample))
+                return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: payload)
+
+            case ClawdisHealthCommand.ringsGet.rawValue:
+                let rings = try await self.health.fetchActivityRings(allowPrompt: !self.isBackgrounded)
+                let payload = try Self.encodePayload(ClawdisHealthActivityRingsResponse(rings: rings))
+                return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: payload)
+
+            case ClawdisHealthCommand.stepsGet.rawValue:
+                let summary = try await self.health.fetchStepsSummary(allowPrompt: !self.isBackgrounded)
+                let payload = try Self.encodePayload(ClawdisHealthStepsResponse(summary: summary))
+                return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: payload)
+
+            case ClawdisHealthCommand.bloodPressureGet.rawValue:
+                let sample = try await self.health.fetchLatestBloodPressure(allowPrompt: !self.isBackgrounded)
+                let payload = try Self.encodePayload(ClawdisHealthBloodPressureResponse(sample: sample))
+                return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: payload)
+
+            case ClawdisHealthCommand.sleepGet.rawValue:
+                let params = (try? Self.decodeParams(ClawdisHealthSleepQueryParams.self, from: req.paramsJSON)) ??
+                    ClawdisHealthSleepQueryParams()
+                let samples = try await self.health.fetchSleepSamples(
+                    limit: params.limit ?? 5,
+                    allowPrompt: !self.isBackgrounded)
+                let payload = try Self.encodePayload(ClawdisHealthSleepResponse(samples: samples))
+                return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: payload)
+
             default:
                 return BridgeInvokeResponse(
                     id: req.id,
@@ -719,6 +784,10 @@ final class NodeAppModel {
         // Default-on: if the key doesn't exist yet, treat it as enabled.
         if UserDefaults.standard.object(forKey: "camera.enabled") == nil { return true }
         return UserDefaults.standard.bool(forKey: "camera.enabled")
+    }
+
+    private func isHealthEnabled() -> Bool {
+        UserDefaults.standard.bool(forKey: "health.enabled")
     }
 
     private func triggerCameraFlash() {

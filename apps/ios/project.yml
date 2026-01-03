@@ -34,6 +34,7 @@ targets:
       - package: Swabble
         product: SwabbleKit
       - sdk: AppIntents.framework
+      - sdk: HealthKit.framework
     preBuildScripts:
       - name: SwiftFormat (lint)
         basedOnDependencyAnalysis: false
@@ -64,6 +65,7 @@ targets:
       base:
         CODE_SIGN_IDENTITY: "Apple Development"
         CODE_SIGN_STYLE: Manual
+        CODE_SIGN_ENTITLEMENTS: Sources/Clawdis.entitlements
         DEVELOPMENT_TEAM: Y5PE65HELJ
         PRODUCT_BUNDLE_IDENTIFIER: com.steipete.clawdis.ios
         PROVISIONING_PROFILE_SPECIFIER: "com.steipete.clawdis.ios Development"
@@ -84,6 +86,8 @@ targets:
         NSBonjourServices:
           - _clawdis-bridge._tcp
         NSCameraUsageDescription: Clawdis can capture photos or short video clips when requested via the bridge.
+        NSHealthShareUsageDescription: Clawdis reads weight data to share with the bridge when requested.
+        NSHealthUpdateUsageDescription: Clawdis records weight data to Health when requested by the bridge.
         NSMicrophoneUsageDescription: Clawdis needs microphone access for voice wake.
         NSSpeechRecognitionUsageDescription: Clawdis uses on-device speech recognition for voice wake.
 
